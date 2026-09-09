@@ -1,0 +1,23 @@
+{
+  "name": "spotifrax-jukebox",
+  "version": "1.0.0",
+  "description": "A Spotify jukebox: scan a QR code to add songs to the queue, with a big-screen now-playing and upcoming queue display.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "spotify",
+    "jukebox",
+    "qrcode",
+    "party"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "qrcode": "^1.5.4"
+  }
+}
