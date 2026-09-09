@@ -33,13 +33,19 @@ if (is_file($localFile)) {
 
 function cfg_get(array $local, string $key, ?string $default = null): ?string
 {
-    // Env var wins; then config.local.php; then default.
+    // config.local.php is the explicit, uploaded source of truth: if it provides
+    // a non-empty value, use it. Only fall back to an environment variable when
+    // the file doesn't set the key. (Some shared hosts expose phantom/empty env
+    // vars that otherwise shadowed the file — this ordering avoids that trap.)
+    if (array_key_exists($key, $local)) {
+        $fileVal = trim((string) $local[$key]);
+        if ($fileVal !== '') {
+            return $fileVal;
+        }
+    }
     $env = env_or($key);
     if ($env !== null) {
-        return $env;
-    }
-    if (array_key_exists($key, $local) && $local[$key] !== '') {
-        return (string) $local[$key];
+        return trim($env);
     }
     return $default;
 }
