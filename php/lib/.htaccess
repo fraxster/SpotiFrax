@@ -1,0 +1,3 @@
+# Never serve PHP library files directly over the web.
+Require all denied
+Deny from all

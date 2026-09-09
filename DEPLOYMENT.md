@@ -17,7 +17,7 @@ saves the most pain.
 | Node-capable PaaS (Render, Railway, Fly.io, Heroku, DigitalOcean App Platform) | ✅ Easiest | Runs `npm start`, gives you HTTPS. Recommended. |
 | VPS / cloud VM (DigitalOcean Droplet, Hetzner, EC2, Linode) | ✅ Most control | You install Node + a process manager + a reverse proxy yourself. |
 | Shared hosting **with a "Setup Node.js App"** panel (cPanel/Plesk, e.g. A2, Namecheap, Hostinger) | ⚠️ Sometimes | Works only if the panel supports persistent Node apps. The background feeder needs the process to stay alive. |
-| Classic shared hosting (PHP/HTML only, FTP upload) | ❌ No | Cannot run Node or keep a process running. |
+| Classic shared hosting (PHP/HTML only, FTP upload) | ❌ Not for the Node app | Can't run Node — but there's a **[PHP version](./php/README.md)** built exactly for this. |
 | Static hosts (GitHub Pages, Netlify static, S3) | ❌ No | Static files only; there's no server to run. |
 
 **Two hard requirements**, whatever you choose:

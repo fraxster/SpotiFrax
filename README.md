@@ -67,6 +67,9 @@ Open the display: <http://127.0.0.1:8888>
 > **Hosting it online?** See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for putting
 > SpotiFrax on a web host (PaaS, VPS, or a Node-capable shared host), including
 > HTTPS, the production redirect URI, and keeping the voting feeder alive.
+>
+> **On classic PHP-only shared hosting?** There's a no-Node, no-database
+> **[PHP version in `php/`](./php/README.md)** built for exactly that.
 
 ## 4. Use it
 

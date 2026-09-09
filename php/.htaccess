@@ -1,0 +1,28 @@
+# SpotiFrax (PHP) — Apache access rules.
+# Blocks direct web access to code, config, and state files.
+
+# Deny access to the data directory (tokens.json, queue.json live here).
+RedirectMatch 403 ^/data(/.*)?$
+
+# Deny access to the library and config files.
+RedirectMatch 403 ^/lib(/.*)?$
+<FilesMatch "\.(json|lock)$">
+    Require all denied
+</FilesMatch>
+<Files "config.php">
+    Require all denied
+</Files>
+<Files "config.local.php">
+    Require all denied
+</Files>
+<Files "config.local.example.php">
+    Require all denied
+</Files>
+
+# Make index.php the directory index.
+DirectoryIndex index.php
+
+# Basic caching for static assets.
+<FilesMatch "\.(css|js)$">
+    Header set Cache-Control "max-age=300, public"
+</FilesMatch>

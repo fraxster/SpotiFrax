@@ -1,0 +1,7 @@
+# Local config with secrets
+config.local.php
+
+# Runtime state (tokens, queue). Keep the folder, ignore its contents.
+data/*.json
+data/*.json.lock
+data/*.tmp.*

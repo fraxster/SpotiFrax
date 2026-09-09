@@ -1,0 +1,3 @@
+# Never serve anything from the data directory over the web.
+Require all denied
+Deny from all
