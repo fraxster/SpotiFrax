@@ -57,6 +57,8 @@ $config = [
     'public_base_url' => rtrim((string) cfg_get($local, 'PUBLIC_BASE_URL', 'http://127.0.0.1:8888'), '/'),
     // Where JSON state files live. Must be writable by the web server.
     'data_dir'      => cfg_get($local, 'DATA_DIR', __DIR__ . '/data'),
+    // Password for the management page + moderator actions. Empty disables admin.
+    'admin_password' => cfg_get($local, 'ADMIN_PASSWORD', ''),
     // Scopes required to read playback + control the queue.
     'scopes'        => 'user-read-playback-state user-modify-playback-state user-read-currently-playing',
 ];

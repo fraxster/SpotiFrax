@@ -10,6 +10,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/Store.php';
 require_once __DIR__ . '/Spotify.php';
 require_once __DIR__ . '/Jukebox.php';
+require_once __DIR__ . '/Settings.php';
 
 /** @var array $config */
 $config = require __DIR__ . '/../config.php';
@@ -17,6 +18,7 @@ $config = require __DIR__ . '/../config.php';
 $store = new Store((string) $config['data_dir']);
 $spotify = new Spotify($config, $store);
 $jukebox = new Jukebox($store, $spotify);
+$settings = new Settings($store);
 
 /** Return this visitor's guest id, setting a cookie if they don't have one. */
 function guest_id(): string
@@ -50,5 +52,53 @@ function require_auth(Spotify $spotify): void
 {
     if (!$spotify->isAuthenticated()) {
         json_response(['error' => 'not_authenticated', 'message' => 'Host has not logged in to Spotify yet.'], 401);
+    }
+}
+
+/** Start a session if one isn't running (used for admin login state). */
+function ensure_session(): void
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+}
+
+/** True if the current session is a logged-in admin/moderator. */
+function is_admin(): bool
+{
+    ensure_session();
+    return !empty($_SESSION['is_admin']);
+}
+
+/**
+ * Attempt admin login with a password. Uses a constant-time comparison and
+ * refuses to authenticate when no ADMIN_PASSWORD is configured.
+ */
+function admin_login(array $config, string $password): bool
+{
+    $expected = (string) ($config['admin_password'] ?? '');
+    if ($expected === '') {
+        return false; // admin disabled until a password is set
+    }
+    if (!hash_equals($expected, $password)) {
+        return false;
+    }
+    ensure_session();
+    session_regenerate_id(true);
+    $_SESSION['is_admin'] = true;
+    return true;
+}
+
+function admin_logout(): void
+{
+    ensure_session();
+    unset($_SESSION['is_admin']);
+}
+
+/** Guard: require an admin session for a protected API call. */
+function require_admin(): void
+{
+    if (!is_admin()) {
+        json_response(['error' => 'forbidden', 'message' => 'Admin login required.'], 403);
     }
 }

@@ -24,12 +24,17 @@
         The host needs to log in with a Spotify Premium account, then start playback on any device.
       </p>
       <p><button id="login-btn">Log in with Spotify</button></p>
+      <p style="margin-top:18px;"><a href="admin.php" style="color:var(--muted);font-size:13px;">Manage display</a></p>
     </div>
   </div>
 
   <!-- Main display -->
   <main id="display" class="display" hidden>
     <section class="now">
+      <div id="brand-bar" class="brand-bar">
+        <img id="brand-logo" class="brand-logo" alt="" hidden />
+        <span id="brand-title" class="brand-title"></span>
+      </div>
       <img id="art" class="now-art" alt="Album art" />
       <div>
         <h1 id="title" class="now-title">Nothing playing</h1>

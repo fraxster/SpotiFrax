@@ -126,6 +126,21 @@ final class Jukebox
         }
     }
 
+    /** Moderator action: remove a track from the queue entirely, votes and all. */
+    public function removeTrack(string $trackId): bool
+    {
+        $removed = false;
+        $this->store->update('queue', function (array $state) use ($trackId, &$removed): array {
+            $state = $state ?: $this->defaultState();
+            if (isset($state['entries'][$trackId])) {
+                unset($state['entries'][$trackId]);
+                $removed = true;
+            }
+            return $state;
+        }, $this->defaultState());
+        return $removed;
+    }
+
     /**
      * Request-time feeder. Call this on state polls. If the currently playing
      * track is within LEAD_MS of ending (or nothing is playing), push the top

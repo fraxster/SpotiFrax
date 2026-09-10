@@ -5,3 +5,7 @@ config.local.php
 data/*.json
 data/*.json.lock
 data/*.tmp.*
+
+# Uploaded logos. Keep the folder, ignore the images.
+assets/uploads/*
+!assets/uploads/.gitkeep

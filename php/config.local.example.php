@@ -19,6 +19,10 @@ return [
     // The public base URL guests reach (used to build the QR code).
     'PUBLIC_BASE_URL'       => 'http://127.0.0.1:8888',
 
+    // Password for the management page (admin.php) and moderator actions like
+    // removing songs. Choose a strong value. Leave empty to disable admin.
+    'ADMIN_PASSWORD'        => 'change_this_admin_password',
+
     // Optional: absolute path to a writable directory for JSON state.
     // Defaults to php/data. Point this OUTSIDE the web root if you can.
     // 'DATA_DIR'           => '/home/youruser/spotifrax-data',

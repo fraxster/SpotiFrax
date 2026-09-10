@@ -28,14 +28,16 @@ JSON files, and the "feeder" that hands the top-voted song to Spotify runs
 php/
 ├── index.php            # Display page (big screen)
 ├── add.php              # Guest page (mobile: search + add + vote)
+├── admin.php            # Management page (logo, sizes; log in to moderate)
 ├── login.php            # Starts Spotify OAuth
 ├── callback.php         # OAuth redirect target
-├── config.php           # Reads env vars or config.local.php
+├── config.php           # Reads config.local.php (or env vars)
 ├── config.local.example.php  # Copy to config.local.php and fill in
-├── api/                 # JSON endpoints (status, search, queue, vote, now-playing, qrcode)
-├── assets/              # styles.css, display.js, add.js, qrcode.min.js
-├── lib/                 # Store.php, Spotify.php, Jukebox.php, bootstrap.php
-└── data/                # JSON state (tokens.json, queue.json) — must be writable
+├── api/                 # Public JSON endpoints (status, search, queue, vote, now-playing, qrcode, settings)
+├── admin/               # Admin-only endpoints (login, logout, save-settings, upload-logo, remove-track)
+├── assets/              # styles.css, display.js, add.js, admin.js, qrcode.min.js, uploads/
+├── lib/                 # Store.php, Spotify.php, Jukebox.php, Settings.php, bootstrap.php
+└── data/                # JSON state (tokens/queue/settings) — must be writable
 ```
 
 ## 1. Create a Spotify app
@@ -65,16 +67,19 @@ return [
     'SPOTIFY_CLIENT_SECRET' => '…',
     'SPOTIFY_REDIRECT_URI'  => 'https://your-domain.com/callback.php',
     'PUBLIC_BASE_URL'       => 'https://your-domain.com',
+    'ADMIN_PASSWORD'        => 'a-strong-password',  // enables the manage page
     // 'DATA_DIR'           => '/home/youruser/spotifrax-data', // optional
 ];
 ```
 
 `PUBLIC_BASE_URL` is what the QR code points at (it links to
 `PUBLIC_BASE_URL/add.php`), so it must be the address guests' phones can reach.
+`ADMIN_PASSWORD` unlocks the [management page and moderation](#management-page--moderation);
+leave it out to disable admin entirely.
 
-> Prefer environment variables? `config.php` reads them first
-> (`SPOTIFY_CLIENT_ID`, etc.), so on hosts that support env vars you can skip
-> `config.local.php` entirely.
+> Prefer environment variables? `config.local.php` takes precedence when it sets
+> a non-empty value; an environment variable is used only as a fallback for keys
+> the file doesn't define.
 
 ## 3. Upload and set permissions
 
@@ -87,9 +92,18 @@ chmod 770 data
 # chmod 777 data   (less ideal; use only if your host requires it)
 ```
 
-The app writes `data/tokens.json` and `data/queue.json` here. If you set a custom
-`DATA_DIR`, make **that** directory writable instead — ideally place it **outside**
-the web root so state files can never be served.
+The app writes `data/tokens.json`, `data/queue.json`, and `data/settings.json`
+here. If you set a custom `DATA_DIR`, make **that** directory writable instead —
+ideally place it **outside** the web root so state files can never be served.
+
+If you want to **upload logos** from the management page, also make the uploads
+folder writable:
+
+```bash
+chmod 775 assets/uploads
+```
+
+(You can skip this and use a logo **URL** instead, which needs no writable folder.)
 
 ## 4. Local testing (optional)
 
@@ -138,6 +152,37 @@ even when no page is open:
 
 (Every minute is plenty; the feeder throttles itself internally.)
 
+## Management page & moderation
+
+Set `ADMIN_PASSWORD` in `config.local.php`, then open **`admin.php`**
+(e.g. `https://your-domain.com/admin.php`) and log in with that password.
+
+From the management page you can:
+
+- **Branding** — set a display **title** and a **logo**, either by pasting an
+  image **URL** or **uploading** a file (PNG/JPG/GIF/WEBP/SVG, up to 3 MB). The
+  logo and title show at the top of the now-playing panel.
+- **Widget sizes** — three sliders scale the **album art**, the **QR code**, and
+  the **queue text** independently (shown as a percentage).
+
+Click **Save changes**. The display picks up new settings within a few seconds —
+no reload needed — because it polls `api/settings.php` on a timer.
+
+### Moderating the queue (removing songs)
+
+While you're logged in as admin, open the **display** (`index.php`) in the same
+browser. A small **✕ remove** button appears on each song in the “Up next” list.
+Clicking it deletes that request from the queue (votes and all). Guests never see
+these buttons — they only appear for a logged-in admin session.
+
+> Admin state lives in a PHP **session cookie**, so the display and `admin.php`
+> must be opened in the **same browser** for moderation buttons to appear. Use
+> the **Log out** button on `admin.php` when you're done.
+
+Note: removing a song only affects **SpotiFrax's** queue. A song that has already
+been handed to Spotify (the current or on-deck track) can't be pulled back via
+the API — see the Spotify limitation above.
+
 ## API endpoints
 
 | Method | Path | Purpose |
@@ -151,6 +196,12 @@ even when no page is open:
 | POST | `api/vote.php`       | Toggle this guest's vote: `{ trackId }`. |
 | GET  | `api/now-playing.php`| Current track + progress (also runs the feeder). |
 | GET  | `api/qrcode.php`     | The add-page URL (QR is drawn client-side). |
+| GET  | `api/settings.php`   | Display settings + whether you're an admin. |
+| POST | `admin/login.php`    | Admin login: `{ password }`. |
+| GET  | `admin/logout.php`   | End the admin session. |
+| POST | `admin/save-settings.php` | Save settings (admin only). |
+| POST | `admin/upload-logo.php`   | Upload a logo file (admin only, `multipart`). |
+| POST | `admin/remove-track.php`  | Remove a song: `{ trackId }` (admin only). |
 
 ## Security notes
 
@@ -162,6 +213,12 @@ even when no page is open:
 - The guest cookie is a casual anonymous id, not a security control; clearing
   cookies lets someone vote again. It's a party, not an election.
 - Keep `SPOTIFY_CLIENT_SECRET` server-side only.
+- **Admin:** the management page and moderation are gated by `ADMIN_PASSWORD`
+  (compared in constant time) and a PHP session. Use a strong password and serve
+  the site over **HTTPS** so the login and session cookie aren't sent in clear.
+  Admin is fully disabled if `ADMIN_PASSWORD` is empty. Uploaded logos are
+  size/type-checked and stored in `assets/uploads/`, where an `.htaccess` turns
+  off script execution.
 
 ## Troubleshooting
 
